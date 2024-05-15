@@ -13,12 +13,12 @@ class MainTabBarViewController: UITabBarController {
         super.viewDidLoad()
             view.backgroundColor = UIColor(rgb:0x252422)
 
-        let firstViewController = NewsViewController()
-        firstViewController.tabBarItem = UITabBarItem(title: "Home", image: UIImage(systemName: "house"), selectedImage: UIImage(systemName: "house.fill"))
+        let navController = UINavigationController(rootViewController: NewsViewController())
+               navController.tabBarItem = UITabBarItem(title: "Home", image: UIImage(systemName: "house"), selectedImage: UIImage(systemName: "house.fill"))
 
-        let secondViewController = FavoritesViewController()
+        let secondViewController = UINavigationController(rootViewController: FavoritesViewController())
         secondViewController.tabBarItem = UITabBarItem(title: "Favorites", image: UIImage(systemName: "heart"), selectedImage: UIImage(systemName: "heart.fill"))
 
-        viewControllers = [firstViewController, secondViewController]
+        viewControllers = [navController, secondViewController]
     }
 }
