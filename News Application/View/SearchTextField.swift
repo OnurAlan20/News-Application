@@ -25,11 +25,14 @@ class SearchTextField: UITextField{
     
     private func setupTextField() {
         returnKeyType = .search
-        placeholder = "Search"
+        textColor = UIColor(rgb: 0x0b0b0b)
         backgroundColor = UIColor(rgb:0xEEEDEB)
         layer.cornerRadius = 10
         clipsToBounds = true
         translatesAutoresizingMaskIntoConstraints = false
+        attributedPlaceholder = NSAttributedString(string:"Search", attributes: [NSAttributedString.Key.foregroundColor: UIColor.gray])
+
+        
     }
 }
 
@@ -40,15 +43,13 @@ extension SearchTextField:UITextFieldDelegate{
         return true
     }
     func textFieldDidEndEditing(_ textField: UITextField) {
-        //print("onur")
         if let searchText = textField.text{
             NewsAPI.sharedInstance.getNews(text: searchText) { [self] responseModel, error in
                 guard let responseModel = responseModel else {
                     print("Error fetching news: \(error?.localizedDescription ?? "Unknown error")")
                     return
                 }
-                NewsAPI.sharedInstance.articles = responseModel.articles // Haberleri aldık
-                //print(NewsAPI.sharedInstance.articles)
+                NewsAPI.sharedInstance.articles = responseModel.articles
                
                 self.searchIconTapAction!()
             }

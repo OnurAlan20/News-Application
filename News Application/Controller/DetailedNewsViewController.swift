@@ -10,9 +10,9 @@ import UIKit
 class DetailedNewsViewController: UIViewController {
     
     var article: Article?
+    var isFavorite: Bool = false
     
     
-    // Scrollable view için UIScrollView ve içerikleri
     let scrollView = UIScrollView()
     let containerView = UIView()
     let articleImageView = UIImageView()
@@ -21,62 +21,92 @@ class DetailedNewsViewController: UIViewController {
     let contentLabel = UILabel()
     let buttonContainerView = UIView()
     
-
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor(rgb:0xEEEDEB)
         
-
-
-        
-        setupNavBar()
-        setupScrollView()
-        setupArticleContent()
-        addBottomButton()
+        let articleIsFaved = NewsSwiftCore.sharedInstance.getArticleWithTitle(article?.title ?? "")
+        if articleIsFaved != nil {
+            isFavorite = true
+        }
+        setupScreen()
         
     }
     
-    // Diğer kodlar buraya gelecek...
 }
 
 extension DetailedNewsViewController{
-    
-    func setupNavBar() {
-        navigationController?.setNavigationBarHidden(false, animated: false)
-        
-        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "chevron.left"), style: .plain, target: self, action: #selector(backButtonTapped))
-        
-        let favButton = UIBarButtonItem(image: UIImage(systemName: "heart"), style: .plain, target: self, action: #selector(favoriteButtonTapped))
-        let shareButton = UIBarButtonItem(image: UIImage(systemName: "square.and.arrow.up"), style: .plain, target: self, action: #selector(shareButtonTapped))
-        navigationItem.rightBarButtonItems = [favButton, shareButton]
-        
-    }
-    
     @objc func backButtonTapped() {
         navigationController?.popViewController(animated: true)
     }
     
     @objc func favoriteButtonTapped() {
-        
-        NewsBrain.sharedInstance.addArticle(article: article!)
-
-        
+        if isFavorite {
+            // Makale zaten favorilerde, kaldır
+            if let title = article?.title, NewsSwiftCore.sharedInstance.deleteArticleWithTitle(title) {
+                isFavorite = false
+                setupNavBar()
+            }
+        } else {
+            // Makale favorilere ekleniyorz
+            if let article = article {
+                NewsSwiftCore.sharedInstance.addArticle(article: article)
+                isFavorite = true
+                setupNavBar()
+            }
+        }
     }
     
     
     @objc func shareButtonTapped() {
+        
         guard let articleUrl = article?.url else {
             print("Haber linki bulunamadı.")
             return
         }
-        
-        // Paylaşma işlemi için UIActivityViewController oluştur
         let activityViewController = UIActivityViewController(activityItems: [articleUrl], applicationActivities: nil)
-        activityViewController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem // iPad'de uygun bir yerde görünmesi için
+        activityViewController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
         
         present(activityViewController, animated: true, completion: nil)
+        
+        
     }
+    
+    @objc func bottomButtonTapped() {
+        let newsWebWiew = NewsWebViewController()
+        newsWebWiew.article = self.article
+        navigationController?.pushViewController(newsWebWiew, animated: true)
+    }
+}
+
+extension DetailedNewsViewController{
+    
+    func setupScreen(){
+        setupNavBar()
+        setupScrollView()
+        setupArticleContent()
+        addBottomButton()
+    }
+    
+    func setupNavBar() {
+        view.backgroundColor = UIColor(rgb:0xEEEDEB)
+        
+        navigationController?.setNavigationBarHidden(false, animated: false)
+        
+        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "chevron.left"), style: .plain, target: self, action: #selector(backButtonTapped))
+        
+        let favImage = UIImage(systemName: "heart")
+        let filledFavImage = UIImage(systemName: "heart.fill")
+        
+        
+        let favButton = UIBarButtonItem(image: isFavorite ? filledFavImage : favImage, style: .plain, target: self, action: #selector(favoriteButtonTapped))
+        
+        let shareButton = UIBarButtonItem(image: UIImage(systemName: "square.and.arrow.up"), style: .plain, target: self, action: #selector(shareButtonTapped))
+        
+        navigationItem.rightBarButtonItems = [shareButton,favButton]
+    }
+    
     
 }
 
@@ -114,39 +144,33 @@ extension DetailedNewsViewController {
         ])
     }
     
-    
-    
-    
-    
-    
     func setupArticleContent() {
-        // Article Image View
         
         let articleImageView: UIImageView = {
             let imageView = UIImageView()
             imageView.translatesAutoresizingMaskIntoConstraints = false
             imageView.contentMode = .scaleAspectFit
-            imageView.clipsToBounds = true // Resim içeriğini sınırlayarak yuvarlatılmış köşelerde göstermek için
+            imageView.clipsToBounds = true 
             return imageView
         }()
-        if let imageUrlString = article?.urlToImage, let imageUrl = URL(string: imageUrlString) {
-            URLSession.shared.dataTask(with: imageUrl) { (data, response, error) in
-                if let imageData = data, let image = UIImage(data: imageData) {
-                    DispatchQueue.main.async {
-                        articleImageView.image = image
-                    }
-                }
-            }.resume()
+        NewsBrain.sharedInstance.stringUrlToImage(stringUrl: article?.urlToImage) { image in
+            if let image = image {
+                articleImageView.image = image
+            } else {
+                articleImageView.image = .none
+            }
+            
         }
         
         scrollView.addSubview(articleImageView)
         
-        // Burada articleImageView'e resmi yükleme kodunu ekleyebilirsiniz
         
         // Date Label
         dateLabel.translatesAutoresizingMaskIntoConstraints = false
         dateLabel.textAlignment = .right
         dateLabel.font = UIFont.boldSystemFont(ofSize: 16)
+        dateLabel.textColor = UIColor(rgb: 0x2c2c2b)
+
         dateLabel.sizeToFit()
         scrollView.addSubview(dateLabel)
         
@@ -158,20 +182,18 @@ extension DetailedNewsViewController {
         }
         
         
-        // Author Label
         authorLabel.translatesAutoresizingMaskIntoConstraints = false
         scrollView.addSubview(authorLabel)
         authorLabel.font = UIFont.boldSystemFont(ofSize: 16)
         authorLabel.textAlignment = .left
         authorLabel.sizeToFit()
+        authorLabel.textColor = UIColor(rgb: 0x2c2c2b)
         authorLabel.text = article?.author
         
-        // Content Label
         contentLabel.translatesAutoresizingMaskIntoConstraints = false
-        contentLabel.numberOfLines = 0 // Sınırsız satır sayısı için
-        contentLabel.sizeToFit() // Label boyutunu içeriğe göre otomatik ayarla
-        
-        
+        contentLabel.numberOfLines = 0 
+        contentLabel.textColor = UIColor(rgb: 0x2c2c2b)
+        contentLabel.sizeToFit()
         
         
         scrollView.addSubview(contentLabel)
@@ -225,11 +247,7 @@ extension DetailedNewsViewController {
         ])
     }
     
-    @objc func bottomButtonTapped() {
-        let newsWebWiew = NewsWebViewController()
-        newsWebWiew.article = self.article
-        navigationController?.pushViewController(newsWebWiew, animated: true)
-    }
+    
     
     
 }

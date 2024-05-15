@@ -9,6 +9,8 @@ import Foundation
 import UIKit
 
 class NewsTableViewCell: UITableViewCell {
+    
+   
     let articleImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.translatesAutoresizingMaskIntoConstraints = false
@@ -21,6 +23,7 @@ class NewsTableViewCell: UITableViewCell {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = UIFont.boldSystemFont(ofSize: 16)
+        label.textColor = .black
         label.numberOfLines = 0
         return label
     }()
@@ -29,22 +32,25 @@ class NewsTableViewCell: UITableViewCell {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = UIFont.systemFont(ofSize: 14)
+        label.textColor = UIColor(rgb: 0x2c2c2b)
         label.numberOfLines = 0
         return label
     }()
     
     let dateLabel: UILabel = {
-            let label = UILabel()
-            label.translatesAutoresizingMaskIntoConstraints = false
-            label.font = UIFont.italicSystemFont(ofSize: 12)
-            label.textAlignment = .right // Sağa hizalı
-            return label
-        }()
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = UIFont.boldSystemFont(ofSize: 12)
+        label.textColor = UIColor(rgb: 0x2c2c2b)
+        label.textAlignment = .right // Sağa hizalı
+        return label
+    }()
     
     let authorLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.systemFont(ofSize: 12)
+        label.font = UIFont.boldSystemFont(ofSize: 12)
+        label.textColor = UIColor(rgb: 0x2c2c2b)
         label.textAlignment = .right
         return label
     }()
@@ -59,6 +65,9 @@ class NewsTableViewCell: UITableViewCell {
     }
     
     func setupUI() {
+        backgroundColor = UIColor(rgb:0xEEEDEB)
+        layer.cornerRadius = 10
+        
         addSubview(articleImageView)
         addSubview(titleLabel)
         addSubview(contentLabel)
@@ -66,7 +75,7 @@ class NewsTableViewCell: UITableViewCell {
         addSubview(authorLabel)
         
         NSLayoutConstraint.activate([
-            // Eski constraint'leri burada belirtin
+            
             
             // Yeni constraint'ler
             articleImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
@@ -93,13 +102,11 @@ class NewsTableViewCell: UITableViewCell {
             authorLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8) // En alta hizala
         ])
         
-        // Hücrenin arka planını ve köşe yuvarlaklığını ayarlayalım
-        backgroundColor = UIColor(rgb:0xEEEDEB) // Koyu gri
-        layer.cornerRadius = 10
+        
     }
-
-
-
-
+    
+    
+    
+    
     
 }

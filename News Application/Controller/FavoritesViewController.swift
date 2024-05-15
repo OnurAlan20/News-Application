@@ -17,18 +17,38 @@ class FavoritesViewController: UIViewController,UITableViewDataSource {
         super.viewDidLoad()
         tableView.delegate = self
         tableView.dataSource = self
-        setupTableView()
-        view.backgroundColor = UIColor.white
-        
-        if let fetchedArticles = NewsBrain.sharedInstance.getAllArticles(){
-            articles = fetchedArticles
-            tableView.reloadData()
-        }
-        
+        setupScreen()
         
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        if let fetchedArticles = NewsSwiftCore.sharedInstance.getAllArticles(){
+            articles = fetchedArticles
+            tableView.reloadData()
+        }
+    }
+    
+    
+    
+
+}
+extension FavoritesViewController{
+    func setupScreen(){
+        setupNavBar()
+        setupTableView()
+    }
+    func setupNavBar() {
+        navigationController?.setNavigationBarHidden(false, animated: false)
+        navigationItem.title = "Favorites"
+        navigationController?.navigationBar.titleTextAttributes = [
+            NSAttributedString.Key.foregroundColor: UIColor.gray, // Başlık metin rengi
+            NSAttributedString.Key.font: UIFont.boldSystemFont(ofSize: 20) // Başlık metin fontu
+        ]
+    }
     func setupTableView() {
+        view.backgroundColor = UIColor.white
+        
         view.addSubview(tableView)
         tableView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -43,8 +63,6 @@ class FavoritesViewController: UIViewController,UITableViewDataSource {
         
         tableView.register(NewsTableViewCell.self, forCellReuseIdentifier: "NewsCell")
     }
-    
-
 }
 extension FavoritesViewController:UITableViewDelegate{
     func numberOfSections(in tableView: UITableView) -> Int {
@@ -80,14 +98,13 @@ extension FavoritesViewController:UITableViewDelegate{
         }
         cell.authorLabel.text = article.author
         
-        if let imageUrlString = article.urlToImage, let imageUrl = URL(string: imageUrlString) {
-            URLSession.shared.dataTask(with: imageUrl) { (data, response, error) in
-                if let imageData = data, let image = UIImage(data: imageData) {
-                    DispatchQueue.main.async {
-                        cell.articleImageView.image = image
-                    }
-                }
-            }.resume()
+        NewsBrain.sharedInstance.stringUrlToImage(stringUrl: article.urlToImage) { image in
+            if let image = image {
+                cell.articleImageView.image = image
+            } else {
+                cell.articleImageView.image = .none
+            }
+            
         }
         
         return cell
@@ -98,9 +115,6 @@ extension FavoritesViewController:UITableViewDelegate{
         let detailedVC = DetailedNewsViewController()
         detailedVC.article = articles[indexPath.section]
         navigationController?.pushViewController(detailedVC, animated: true)
-        
-        
-        
     }
     
 }
